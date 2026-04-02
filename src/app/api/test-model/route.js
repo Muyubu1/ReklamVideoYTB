@@ -1,24 +1,31 @@
 /**
- * POST /api/test-model — 2 Aşamalı Logo Pipeline
+ * POST /api/test-model — 4 Aşamalı Kusursuz Logo Pipeline
  * Body: { prompt, logoBase64, logoMimeType }
  *
- * Aşama 1: Flux Dev ile temiz sahne üret (logosuz, boş patch)
- * Aşama 2: Kontext Max Multi ile logo yerleştir
+ * Aşama 1: Flux Dev → temiz sahne üret (logosuz)
+ * Aşama 2: Gemini Vision → göğüs alanı tespit et
+ * Aşama 3: Sharp → logoyu kaba yerleştir (over blend + blur)
+ * Aşama 4: Flux Inpainting → sadece logo alanını harmonize et (mask bazlı)
  *
  * GET /api/test-model — Pipeline bilgisi
  */
 
 import { NextResponse } from "next/server";
 import { fal } from "@fal-ai/client";
+import sharp from "sharp";
+import { detectPatchCoordinates, compositeLogoOnImage, generateInpaintMask } from "@/lib/pipeline/logo-composite";
+import { transformPromptForPatchArea, harmonizeWithFlux } from "@/lib/pipeline/image-gen";
 
 export async function GET() {
   return NextResponse.json({
     pipeline: {
-      name: "2 Aşamalı Logo Pipeline",
-      description: "Flux Dev ile sahne üret, Kontext Max Multi ile logoyu yerleştir",
+      name: "4 Aşamalı Kusursuz Logo Pipeline",
+      description: "Flux Dev (sahne) → Gemini (tespit) → Sharp (kaba yerleştirme) → Flux Inpainting (harmonize)",
       steps: [
-        { name: "Sahne Üretimi", model: "Flux Dev", id: "fal-ai/flux/dev" },
-        { name: "Logo Yerleştirme", model: "Kontext Max Multi", id: "fal-ai/flux-pro/kontext/max/multi" },
+        { name: "Temiz Sahne", model: "Flux Dev" },
+        { name: "Göğüs Tespiti", model: "Gemini 2.5 Flash" },
+        { name: "Kaba Yerleştirme", engine: "Sharp Composite" },
+        { name: "Harmonizasyon", model: "Flux Inpainting (mask-based)" },
       ],
     },
   });
@@ -27,29 +34,16 @@ export async function GET() {
 export async function POST(request) {
   try {
     const { prompt, logoBase64, logoMimeType } = await request.json();
-
-    if (!prompt) {
-      return NextResponse.json({ error: "prompt zorunlu" }, { status: 400 });
-    }
-    if (!logoBase64) {
-      return NextResponse.json({ error: "Logo yüklenmeli" }, { status: 400 });
-    }
+    if (!prompt) return NextResponse.json({ error: "prompt zorunlu" }, { status: 400 });
+    if (!logoBase64) return NextResponse.json({ error: "Logo gerekli" }, { status: 400 });
 
     configureFal();
     const startTime = Date.now();
 
-    // Logo'yu fal storage'a yükle
-    const buf = Buffer.from(logoBase64, "base64");
-    const file = new File([buf], "logo.png", { type: logoMimeType || "image/png" });
-    const logoUrl = await fal.storage.upload(file);
-    console.log("[test-lab] Logo yüklendi");
-
-    // Sahne promptunu logosuz hale getir
-    const scenePrompt = transformPromptForPatchArea(prompt);
-
     // AŞAMA 1: Flux Dev ile temiz sahne üret
-    console.log("[test-lab] Aşama 1: Temiz sahne üretiliyor (Flux Dev)...");
-    const stage1Start = Date.now();
+    console.log("[pipeline] Aşama 1: Temiz sahne üretiliyor (Flux Dev)...");
+    const s1Start = Date.now();
+    const scenePrompt = transformPromptForPatchArea(prompt);
 
     const sceneResult = await fal.subscribe("fal-ai/flux/dev", {
       input: {
@@ -64,46 +58,68 @@ export async function POST(request) {
     });
 
     const sceneUrl = sceneResult.data?.images?.[0]?.url;
-    if (!sceneUrl) throw new Error("Sahne görseli üretilemedi");
+    if (!sceneUrl) throw new Error("Sahne üretilemedi");
+    const s1Duration = ((Date.now() - s1Start) / 1000).toFixed(1);
+    console.log(`[pipeline] Aşama 1 tamam (${s1Duration}s)`);
 
-    const stage1Duration = ((Date.now() - stage1Start) / 1000).toFixed(1);
-    console.log(`[test-lab] Aşama 1 tamamlandı (${stage1Duration}s)`);
+    // Sahne görselini indir
+    const sceneRes = await fetch(sceneUrl);
+    const sceneBuffer = Buffer.from(await sceneRes.arrayBuffer());
 
-    // AŞAMA 2: Kontext Max Multi ile logo yerleştir
-    console.log("[test-lab] Aşama 2: Logo yerleştiriliyor (Kontext Max Multi)...");
-    const stage2Start = Date.now();
+    // AŞAMA 2: Gemini Vision ile göğüs alanı tespiti
+    console.log("[pipeline] Aşama 2: Göğüs alanı tespiti (Gemini Vision)...");
+    const s2Start = Date.now();
+    const detection = await detectPatchCoordinates(sceneBuffer);
+    const s2Duration = ((Date.now() - s2Start) / 1000).toFixed(1);
+    console.log(`[pipeline] Aşama 2 tamam (${s2Duration}s) — ${detection.patches?.length || 0} alan`);
 
-    const result = await fal.subscribe("fal-ai/flux-pro/kontext/max/multi", {
-      input: {
-        prompt: buildKontextPrompt(),
-        image_urls: [sceneUrl, logoUrl],
-        guidance_scale: 3.5,
-        num_images: 1,
-        output_format: "png",
-        safety_tolerance: 5,
-      },
-      logs: false,
-    });
+    // AŞAMA 3: Sharp ile kaba logo yerleştirme
+    console.log("[pipeline] Aşama 3: Kaba logo yerleştirme (Sharp)...");
+    const s3Start = Date.now();
+    const logoBuffer = Buffer.from(logoBase64, "base64");
+    const compositeBuffer = await compositeLogoOnImage(sceneBuffer, logoBuffer, detection.patches);
+    const s3Duration = ((Date.now() - s3Start) / 1000).toFixed(1);
+    console.log(`[pipeline] Aşama 3 tamam (${s3Duration}s)`);
 
-    const finalUrl = result.data?.images?.[0]?.url;
-    if (!finalUrl) throw new Error("Logo yerleştirme başarısız");
+    // Kaba composite görseli base64 (frontend'de gösterilecek)
+    const compositeDataUrl = `data:image/png;base64,${compositeBuffer.toString("base64")}`;
 
-    const stage2Duration = ((Date.now() - stage2Start) / 1000).toFixed(1);
+    // AŞAMA 4: Flux Inpainting ile logo alanı harmonizasyonu
+    console.log("[pipeline] Aşama 4: Inpainting harmonizasyon...");
+    const s4Start = Date.now();
+
+    // Mask üret — logo alanları beyaz, geri kalan siyah
+    const meta = await sharp(sceneBuffer).metadata();
+    const maskBuffer = await generateInpaintMask(detection.patches, meta.width, meta.height);
+
+    // Inpainting — sadece logo alanını işle, yüzler/arka plan DEĞİŞMEZ
+    const harmonizedUrl = await harmonizeWithFlux(compositeBuffer, maskBuffer);
+
+    // Harmonize görseli indir ve base64 yap
+    const harmRes = await fetch(harmonizedUrl);
+    const harmBuffer = Buffer.from(await harmRes.arrayBuffer());
+    const finalDataUrl = `data:image/png;base64,${harmBuffer.toString("base64")}`;
+    const s4Duration = ((Date.now() - s4Start) / 1000).toFixed(1);
+    console.log(`[pipeline] Aşama 4 tamam (${s4Duration}s)`);
+
     const totalDuration = ((Date.now() - startTime) / 1000).toFixed(1);
-    console.log(`[test-lab] Aşama 2 tamamlandı (${stage2Duration}s)`);
-    console.log(`[test-lab] Pipeline tamamlandı (${totalDuration}s)`);
+    console.log(`[pipeline] Tamamlandı (${totalDuration}s)`);
 
     return NextResponse.json({
-      imageUrl: finalUrl,
+      imageUrl: finalDataUrl,
+      compositeUrl: compositeDataUrl,
       sceneUrl,
       duration: parseFloat(totalDuration),
+      patchCount: detection.patches?.length || 0,
       steps: {
-        scene: { duration: parseFloat(stage1Duration) },
-        logo: { duration: parseFloat(stage2Duration) },
+        scene: { duration: parseFloat(s1Duration) },
+        detection: { duration: parseFloat(s2Duration), patches: detection.patches },
+        composite: { duration: parseFloat(s3Duration) },
+        harmonization: { duration: parseFloat(s4Duration) },
       },
     });
   } catch (err) {
-    console.error("[test-lab] Hata:", err.message);
+    console.error("[pipeline] Hata:", err.message);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
@@ -112,42 +128,4 @@ function configureFal() {
   const key = process.env.FAL_KEY;
   if (!key) throw new Error("FAL_KEY tanımlanmamış");
   fal.config({ credentials: key });
-}
-
-/**
- * Prompt'taki logo referanslarını boş patch ile değiştirir
- */
-function transformPromptForPatchArea(prompt) {
-  let t = prompt;
-  t = t.replace(/company logo clearly visible/gi, "a visible plain rectangular embroidered patch area");
-  t = t.replace(/the company logo/gi, "a blank embroidered patch");
-  t = t.replace(/company logo/gi, "blank rectangular patch");
-  t = t.replace(/with (?:the )?logo/gi, "with a blank embroidered patch");
-  t = t.replace(/logo clearly visible/gi, "visible plain patch area");
-  t = t.replace(/logo on their/gi, "rectangular badge area on their");
-  t = t.replace(/logo (?:is )?visible/gi, "blank patch area visible");
-  t = t.replace(/\blogo\b/gi, "blank patch");
-
-  if (!t.toLowerCase().includes("patch") && !t.toLowerCase().includes("badge")) {
-    t += " Each person has a visible blank rectangular embroidered patch area on their chest pocket.";
-  }
-  return t;
-}
-
-/**
- * Kontext Max Multi için optimize edilmiş logo yerleştirme promptu
- * @image1 = sahne görseli, @image2 = logo
- */
-function buildKontextPrompt() {
-  return [
-    "Take the exact logo/emblem from @image2 and place it as an embroidered patch",
-    "on the chest pocket area of each person visible in @image1.",
-    "The logo must be reproduced EXACTLY as shown in @image2 —",
-    "preserve every letter, color, shape, and proportion precisely.",
-    "The patch should look naturally sewn onto the uniform fabric:",
-    "match the lighting, perspective, and fabric wrinkles of the scene.",
-    "Do NOT alter, redraw, or reinterpret the logo in any way.",
-    "Do NOT change the people, background, or composition of @image1.",
-    "Only add the logo patches — everything else stays identical.",
-  ].join(" ");
 }

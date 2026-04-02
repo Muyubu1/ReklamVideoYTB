@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VideoAI — Proje Sunumu</title>
+<style>
+/* ═══════════════════════ RESET & BASE ═══════════════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0a0f;--bg2:#12121a;--bg3:#1a1a2e;
+  --text:#e2e2ee;--muted:#8888a8;--dim:#555570;
+  --purple:#a855f7;--purple2:#7c3aed;--purple-g:linear-gradient(135deg,#a855f7,#6d28d9);
+  --blue:#3b82f6;--cyan:#06b6d4;--amber:#f59e0b;--green:#22c55e;--red:#ef4444;
+  --glass:rgba(255,255,255,0.04);--border:rgba(255,255,255,0.08);
+  --radius:16px;--max:1100px;
+}
+html{scroll-behavior:smooth;font-size:16px}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-apple-system,sans-serif;line-height:1.7;overflow-x:hidden}
+a{color:var(--purple);text-decoration:none}
+code,pre{font-family:'Fira Code','SF Mono',Consolas,monospace}
+
+/* ═══════════════════════ NAV ═══════════════════════ */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(10,10,15,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 24px}
+nav .inner{max-width:var(--max);margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:56px}
+nav .logo{font-weight:800;font-size:1.1rem;background:var(--purple-g);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+nav .links{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
+nav .links::-webkit-scrollbar{display:none}
+nav .links a{font-size:.7rem;padding:5px 10px;border-radius:8px;color:var(--muted);white-space:nowrap;transition:.2s}
+nav .links a:hover{color:var(--text);background:var(--glass)}
+
+/* ═══════════════════════ LAYOUT ═══════════════════════ */
+main{max-width:var(--max);margin:0 auto;padding:80px 24px 60px}
+section{margin-bottom:80px;scroll-margin-top:72px}
+
+/* ═══════════════════════ HERO ═══════════════════════ */
+.hero{text-align:center;padding:60px 0 40px}
+.hero h1{font-size:clamp(2rem,5vw,3.2rem);font-weight:900;line-height:1.15;margin-bottom:16px}
+.hero h1 span{background:var(--purple-g);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{font-size:1.1rem;color:var(--muted);max-width:700px;margin:0 auto 32px}
+.hero-stats{display:flex;justify-content:center;gap:40px;flex-wrap:wrap}
+.hero-stats .stat{text-align:center}
+.hero-stats .stat .num{font-size:1.8rem;font-weight:800;background:var(--purple-g);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero-stats .stat .label{font-size:.75rem;color:var(--muted);margin-top:2px}
+
+/* ═══════════════════════ SECTION TITLE ═══════════════════════ */
+.stitle{display:flex;align-items:center;gap:14px;margin-bottom:28px}
+.stitle .num{width:40px;height:40px;border-radius:12px;background:var(--purple-g);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.95rem;flex-shrink:0}
+.stitle h2{font-size:1.5rem;font-weight:800}
+
+/* ═══════════════════════ CARDS ═══════════════════════ */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:28px;margin-bottom:20px}
+.card h3{font-size:1.05rem;font-weight:700;margin-bottom:12px}
+.card h4{font-size:.9rem;font-weight:700;margin:18px 0 8px;color:var(--purple)}
+.card p,.card li{color:var(--muted);font-size:.9rem}
+.card ul{padding-left:20px}
+.card li{margin-bottom:6px}
+
+/* ═══════════════════════ GRID ═══════════════════════ */
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px}
+.grid4{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+
+/* ═══════════════════════ TABLE ═══════════════════════ */
+.tbl{width:100%;border-collapse:collapse;font-size:.85rem;margin:12px 0}
+.tbl th{text-align:left;padding:10px 14px;background:var(--bg3);color:var(--purple);font-weight:700;border-bottom:2px solid var(--border)}
+.tbl td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--muted)}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:rgba(168,85,247,0.04)}
+.tbl .em{color:var(--text);font-weight:600}
+
+/* ═══════════════════════ BADGES ═══════════════════════ */
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.7rem;font-weight:700;letter-spacing:.02em}
+.badge-purple{background:rgba(168,85,247,0.15);color:var(--purple);border:1px solid rgba(168,85,247,0.25)}
+.badge-blue{background:rgba(59,130,246,0.15);color:var(--blue);border:1px solid rgba(59,130,246,0.25)}
+.badge-amber{background:rgba(245,158,11,0.15);color:var(--amber);border:1px solid rgba(245,158,11,0.25)}
+.badge-green{background:rgba(34,197,94,0.15);color:var(--green);border:1px solid rgba(34,197,94,0.25)}
+.badge-red{background:rgba(239,68,68,0.15);color:var(--red);border:1px solid rgba(239,68,68,0.25)}
+
+/* ═══════════════════════ PIPELINE FLOW ═══════════════════════ */
+.pipeline{display:flex;flex-direction:column;gap:0;position:relative}
+.pstep{position:relative;padding:24px 28px;border-radius:var(--radius);border:1px solid var(--border);background:var(--bg2)}
+.pstep .head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.pstep .head h4{margin:0;font-size:.95rem;font-weight:700}
+.pstep .head .time{font-size:.75rem;color:var(--green);font-weight:600}
+.pstep p{font-size:.82rem;color:var(--muted)}
+.pstep code{background:var(--bg3);padding:2px 7px;border-radius:6px;font-size:.78rem;color:var(--cyan)}
+.parrow{text-align:center;font-size:1.5rem;color:var(--dim);line-height:1;padding:6px 0}
+
+/* ═══════════════════════ CODE BLOCK ═══════════════════════ */
+.codeblock{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:18px 22px;overflow-x:auto;margin:12px 0;font-size:.78rem;line-height:1.6;color:var(--cyan)}
+
+/* ═══════════════════════ TIMELINE ═══════════════════════ */
+.timeline{position:relative;padding-left:32px}
+.timeline::before{content:'';position:absolute;left:11px;top:8px;bottom:8px;width:2px;background:var(--border)}
+.tl-item{position:relative;margin-bottom:28px}
+.tl-item::before{content:'';position:absolute;left:-32px;top:6px;width:22px;height:22px;border-radius:50%;border:3px solid var(--purple);background:var(--bg)}
+.tl-item.fail::before{border-color:var(--red)}
+.tl-item.current::before{border-color:var(--green);box-shadow:0 0 12px rgba(34,197,94,0.4)}
+.tl-item h4{font-size:.95rem;font-weight:700;margin-bottom:4px}
+.tl-item p{font-size:.82rem;color:var(--muted)}
+
+/* ═══════════════════════ API CARDS ═══════════════════════ */
+.api-card{border-left:4px solid var(--purple);padding-left:20px;margin-bottom:28px}
+.api-card h3{font-size:1rem;font-weight:700;margin-bottom:4px}
+.api-card .sub{font-size:.78rem;color:var(--muted);margin-bottom:10px}
+
+/* ═══════════════════════ COST BAR ═══════════════════════ */
+.cost-bar{display:flex;height:32px;border-radius:8px;overflow:hidden;margin:16px 0}
+.cost-bar div{display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:700;color:#fff;white-space:nowrap;padding:0 6px}
+
+/* ═══════════════════════ FOOTER ═══════════════════════ */
+footer{text-align:center;padding:40px 24px;border-top:1px solid var(--border);color:var(--dim);font-size:.8rem}
+
+/* ═══════════════════════ RESPONSIVE ═══════════════════════ */
+@media(max-width:768px){
+  .grid2,.grid3,.grid4{grid-template-columns:1fr}
+  nav .links{display:none}
+  .hero-stats{gap:20px}
+  .tbl{font-size:.75rem}
+  .tbl th,.tbl td{padding:8px 10px}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════ NAV ═══════════════════════ -->
+<nav>
+  <div class="inner">
+    <div class="logo">VideoAI Sunum</div>
+    <div class="links">
+      <a href="#vizyon">Vizyon</a>
+      <a href="#mimari">Mimari</a>
+      <a href="#apis">AI Araclari</a>
+      <a href="#logo-pipeline">Logo Pipeline</a>
+      <a href="#video-pipeline">Video Pipeline</a>
+      <a href="#testlab">Test Lab</a>
+      <a href="#frontend">Frontend</a>
+      <a href="#maliyet">Maliyet</a>
+      <a href="#guvenlik">Hata Yonetimi</a>
+      <a href="#versiyon">Versiyon</a>
+      <a href="#roadmap">Roadmap</a>
+      <a href="#sonuc">Sonuc</a>
+    </div>
+  </div>
+</nav>
+
+<main>
+
+<!-- ═══════════════════════ HERO ═══════════════════════ -->
+<section class="hero">
+  <h1><span>VideoAI</span> — AI Destekli<br>Profesyonel Reklam Video Uretici</h1>
+  <p>KOBİ'lerin marka logolarini iceren profesyonel reklam videolari olusturmasini saglayan yapay zeka platformu. Logo yukle, firma bilgilerini gir, gerisini AI halleder.</p>
+  <div class="hero-stats">
+    <div class="stat"><div class="num">~10 dk</div><div class="label">Uretim Suresi</div></div>
+    <div class="stat"><div class="num">$0.82</div><div class="label">Video Basi Maliyet</div></div>
+    <div class="stat"><div class="num">6</div><div class="label">AI API Entegrasyonu</div></div>
+    <div class="stat"><div class="num">4 Asama</div><div class="label">Logo Pipeline</div></div>
+    <div class="stat"><div class="num">5 Adim</div><div class="label">Video Pipeline</div></div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ 1. VİZYON ═══════════════════════ -->
+<section id="vizyon">
+  <div class="stitle"><div class="num">1</div><h2>Vizyon ve Problem</h2></div>
+  <div class="grid2">
+    <div class="card">
+      <h3>Cozdugumuz Problem</h3>
+      <p>Turkiye'deki KOBİ'ler profesyonel reklam videosu uretmek icin <strong style="color:var(--red)">ajansa binlerce lira</strong> odemek veya <strong style="color:var(--red)">gunlerce beklemek</strong> zorunda kaliyor.</p>
+      <ul style="margin-top:14px">
+        <li>Bir montajcinin 1 dakikalik tanitim videosu uretmesi ortalama <strong style="color:var(--text)">3-5 is gunu</strong></li>
+        <li>Maliyet: <strong style="color:var(--text)">5.000 - 15.000 TL</strong></li>
+        <li>Kucuk isletmeler icin erislemez</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Cozumumuz</h3>
+      <p>Kullanici sadece <strong style="color:var(--green)">sirket logosunu yukleyip firma bilgilerini girer</strong>. Gerisini yapay zeka halleder:</p>
+      <ul style="margin-top:14px">
+        <li>Senaryo yazilir <span class="badge badge-purple">LLM</span></li>
+        <li>4 sahnelik fotogercekci gorseller uretilir <span class="badge badge-blue">Flux Dev</span></li>
+        <li>Logo dogal sekilde kiyafetlere yerlestirilir <span class="badge badge-amber">Gemini + Sharp</span></li>
+        <li>Her sahne videoya donusturulur <span class="badge badge-purple">Kling v1.6</span></li>
+        <li>Turkce seslendirme eklenir <span class="badge badge-green">ElevenLabs</span></li>
+        <li>Tek bir profesyonel MP4 dosyasi olarak birlestirilir <span class="badge badge-blue">FFmpeg</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ 2. MİMARİ ═══════════════════════ -->
+<section id="mimari">
+  <div class="stitle"><div class="num">2</div><h2>Teknik Mimari</h2></div>
+  <div class="card">
+    <h3>Teknoloji Yigini</h3>
+    <table class="tbl">
+      <tr><th>Katman</th><th>Teknoloji</th><th>Aciklama</th></tr>
+      <tr><td class="em">Framework</td><td>Next.js 16 (App Router)</td><td>Full-stack React, SSR + API Routes</td></tr>
+      <tr><td class="em">Stil</td><td>Tailwind CSS v4</td><td>Dark tema, glass-morphism UI</td></tr>
+      <tr><td class="em">Goruntu Isleme</td><td>Sharp v0.34</td><td>Node.js C++ binding, yuksek performans</td></tr>
+      <tr><td class="em">Video Isleme</td><td>FFmpeg (fluent-ffmpeg)</td><td>Video birlestirme, codec donusumu</td></tr>
+      <tr><td class="em">Veritabani (MVP)</td><td>In-Memory Map</td><td>Phase 2'de Supabase PostgreSQL</td></tr>
+      <tr><td class="em">Dil</td><td>JavaScript (ESM)</td><td>ES Modules, async/await, Promise.allSettled</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h3>Proje Dosya Yapisi</h3>
+    <div class="codeblock"><pre>src/
+├── app/
+│   ├── page.js                          &larr; Landing sayfasi
+│   ├── api/
+│   │   ├── generate/route.js            &larr; POST: Video uretim baslat
+│   │   ├── status/[jobId]/route.js      &larr; GET: Is durumu sorgula
+│   │   ├── test-model/route.js          &larr; POST: Test Lab pipeline
+│   │   └── files/[...filepath]/route.js &larr; GET: Dosya sunucusu
+│   └── dashboard/
+│       ├── create/page.js               &larr; Video olusturma + ilerleme
+│       ├── videos/page.js               &larr; Tum videolar listesi
+│       └── test-lab/page.js             &larr; Logo Pipeline test arayuzu
+├── components/
+│   ├── dashboard/  (VideoForm, ProgressTracker, VideoCard, CreditBalance)
+│   └── landing/    (Hero, HowItWorks, Pricing, Footer)
+└── lib/pipeline/
+    ├── orchestrator.js                  &larr; 5 adimli koordinator
+    ├── scenario.js                      &larr; Adim 1: LLM senaryo
+    ├── image-gen.js                     &larr; Adim 2: 4 asamali gorsel
+    ├── logo-composite.js                &larr; Gemini tespit + Sharp
+    ├── video-gen.js                     &larr; Adim 3: Goruntuye video
+    ├── tts.js                           &larr; Adim 4: Turkce seslendirme
+    └── ffmpeg.js                        &larr; Adim 5: Video birlestirme</pre></div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ 3. AI ARAÇLARI ═══════════════════════ -->
+<section id="apis">
+  <div class="stitle"><div class="num">3</div><h2>Kullanilan AI Araclari ve API'ler</h2></div>
+
+  <!-- OpenRouter -->
+  <div class="card">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+      <span class="badge badge-purple">LLM</span>
+      <h3 style="margin:0">3.1 OpenRouter API — Senaryo Uretimi</h3>
+    </div>
+    <table class="tbl">
+      <tr><th>Ozellik</th><th>Detay</th></tr>
+      <tr><td class="em">Amac</td><td>Turkce reklam senaryosu + Ingilizce gorsel promptlari uretmek</td></tr>
+      <tr><td class="em">Birincil Model</td><td>Google Gemini 2.5 Flash</td></tr>
+      <tr><td class="em">Yedek Model</td><td>OpenAI GPT-4o Mini (otomatik fallback)</td></tr>
+      <tr><td class="em">Neden OpenRouter?</td><td>Tek API anahtariyla birden fazla LLM saglayicisina erisim</td></tr>
+    </table>
+    <h4>Cikis Formati (JSON)</h4>
+    <div class="codeblock"><pre>{
+  "ad_script_tr": "Turkce reklam metni (max 60 kelime)",
+  "image_prompts": ["Sahne 1 Ingilizce prompt", "Sahne 2...", "Sahne 3...", "Sahne 4..."],
+  "video_prompts": ["Kamera hareketi 1", "Kamera hareketi 2", "...", "..."]
+}</pre></div>
+    <h4>Neden 4 Farkli Sahne?</h4>
+    <div class="grid4" style="margin-top:10px">
+      <div style="padding:14px;background:var(--bg3);border-radius:12px;text-align:center">
+        <div style="font-size:1.5rem;margin-bottom:6px">&#x1F455;</div>
+        <div style="font-size:.78rem;color:var(--text);font-weight:600">Sahne 1</div>
+        <div style="font-size:.72rem;color:var(--muted)">Gogse nakisli yama (uniformalarda)</div>
+      </div>
+      <div style="padding:14px;background:var(--bg3);border-radius:12px;text-align:center">
+        <div style="font-size:1.5rem;margin-bottom:6px">&#x1F6AA;</div>
+        <div style="font-size:.78rem;color:var(--text);font-weight:600">Sahne 2</div>
+        <div style="font-size:.72rem;color:var(--muted)">Kapidaki fircalanmis metal rozet</div>
+      </div>
+      <div style="padding:14px;background:var(--bg3);border-radius:12px;text-align:center">
+        <div style="font-size:1.5rem;margin-bottom:6px">&#x1F4A1;</div>
+        <div style="font-size:.78rem;color:var(--text);font-weight:600">Sahne 3</div>
+        <div style="font-size:.72rem;color:var(--muted)">Isikli / oyma tabela</div>
+      </div>
+      <div style="padding:14px;background:var(--bg3);border-radius:12px;text-align:center">
+        <div style="font-size:1.5rem;margin-bottom:6px">&#x1F3F7;&#xFE0F;</div>
+        <div style="font-size:.78rem;color:var(--text);font-weight:600">Sahne 4</div>
+        <div style="font-size:.72rem;color:var(--muted)">Panel uzerinde baskili etiket</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fal.ai -->
+  <div class="card">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+      <span class="badge badge-blue">IMAGE + VIDEO</span>
+      <h3 style="margin:0">3.2 Fal.ai — Gorsel ve Video Uretimi</h3>
+    </div>
+    <p style="margin-bottom:16px">Fal.ai platformunda <strong style="color:var(--text)">3 farkli model</strong> kullaniyoruz:</p>
+    <div class="grid3">
+      <div style="padding:18px;background:var(--bg3);border-radius:12px;border-left:3px solid var(--purple)">
+        <div style="font-size:.75rem;color:var(--purple);font-weight:700;margin-bottom:6px">A) FLUX DEV</div>
+        <div style="font-size:.85rem;font-weight:600;margin-bottom:8px">Text-to-Image</div>
+        <div style="font-size:.78rem;color:var(--muted)">Model: <code>fal-ai/flux/dev</code></div>
+        <div style="font-size:.78rem;color:var(--muted)">28 inference step, guidance 3.5</div>
+        <div style="font-size:.78rem;color:var(--muted)">~3-4 sn/gorsel, ~$0.04</div>
+      </div>
+      <div style="padding:18px;background:var(--bg3);border-radius:12px;border-left:3px solid var(--amber)">
+        <div style="font-size:.75rem;color:var(--amber);font-weight:700;margin-bottom:6px">B) FLUX INPAINTING</div>
+        <div style="font-size:.85rem;font-weight:600;margin-bottom:8px">Mask-Based Harmonizasyon</div>
+        <div style="font-size:.78rem;color:var(--muted)">Model: <code>fal-ai/flux-general/inpainting</code></div>
+        <div style="font-size:.78rem;color:var(--muted)">strength: 0.35, sadece logo alani</div>
+        <div style="font-size:.78rem;color:var(--muted)">Yuzler / arka plan DEGISMEZ</div>
+      </div>
+      <div style="padding:18px;background:var(--bg3);border-radius:12px;border-left:3px solid var(--cyan)">
+        <div style="font-size:.75rem;color:var(--cyan);font-weight:700;margin-bottom:6px">C) KLING v1.6</div>
+        <div style="font-size:.85rem;font-weight:600;margin-bottom:8px">Image-to-Video</div>
+        <div style="font-size:.78rem;color:var(--muted)">Model: <code>fal-ai/kling-video/v1.6</code></div>
+        <div style="font-size:.78rem;color:var(--muted)">9:16 portrait, 5 saniye, MP4</div>
+        <div style="font-size:.78rem;color:var(--muted)">~6 dk/klip, ~$0.10</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Gemini -->
+  <div class="card">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+      <span class="badge badge-amber">VISION</span>
+      <h3 style="margin:0">3.3 Google Gemini 2.5 Flash — Gorus Modeli</h3>
+    </div>
+    <table class="tbl">
+      <tr><th>Ozellik</th><th>Detay</th></tr>
+      <tr><td class="em">Amac</td><td>Gogseldeki gogus/cep alanini tespit ederek logo yerlesim koordinatlarini dondurme</td></tr>
+      <tr><td class="em">Sicaklik</td><td>0.1 (deterministik, tutarli sonuclar)</td></tr>
+      <tr><td class="em">Cikis</td><td>0-1000 normalize koordinatlar (JSON)</td></tr>
+      <tr><td class="em">Prompt Muhendisligi</td><td>"Kisi basina TAM 1 gogus alani bul, yaka/dugme secme"</td></tr>
+    </table>
+  </div>
+
+  <!-- ElevenLabs -->
+  <div class="card">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+      <span class="badge badge-green">TTS</span>
+      <h3 style="margin:0">3.4 ElevenLabs — Turkce Seslendirme</h3>
+    </div>
+    <table class="tbl">
+      <tr><th>Ozellik</th><th>Detay</th></tr>
+      <tr><td class="em">Model</td><td>Multilingual v2 (eleven_multilingual_v2)</td></tr>
+      <tr><td class="em">Ses</td><td>Adam (Turkce uyumlu erkek ses)</td></tr>
+      <tr><td class="em">Ayarlar</td><td>stability: 0.5 | similarity: 0.75 | style: 0.3 | speaker_boost: true</td></tr>
+      <tr><td class="em">Neden?</td><td>Turkce telaffuz kalitesi rakiplerinden belirgin sekilde ustun</td></tr>
+    </table>
+  </div>
+
+  <!-- Sharp + FFmpeg -->
+  <div class="grid2">
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <span class="badge badge-blue">IMAGE PROCESSING</span>
+        <h3 style="margin:0">3.5 Sharp</h3>
+      </div>
+      <p>Node.js C++ binding (libvips). Logoyu programatik olarak gorsele yerlestirir.</p>
+      <p style="margin-top:8px"><strong style="color:var(--text)">Neden AI degil?</strong></p>
+      <ul style="margin-top:6px">
+        <li><strong style="color:var(--text)">Kontrol:</strong> Piksel koordinati, boyut, aci biz belirleriz</li>
+        <li><strong style="color:var(--text)">Hiz:</strong> &lt;100ms (AI 3-10 sn surerdi)</li>
+        <li><strong style="color:var(--text)">Maliyet:</strong> $0 (API cagrisi yok)</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <span class="badge badge-blue">VIDEO</span>
+        <h3 style="margin:0">3.6 FFmpeg</h3>
+      </div>
+      <p>4 video klip + ses dosyasini tek MP4'e birlestirir.</p>
+      <table class="tbl" style="margin-top:10px">
+        <tr><td class="em">Cikis</td><td>1080x1920 (9:16), H.264, AAC 192kbps</td></tr>
+        <tr><td class="em">Sure</td><td>~10 saniye</td></tr>
+        <tr><td class="em">Wrapper</td><td>fluent-ffmpeg (Node.js)</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ 4. LOGO PİPELİNE ═══════════════════════ -->
+<section id="logo-pipeline">
+  <div class="stitle"><div class="num">4</div><h2>Logo Yerlestirme Pipeline'i — 4 Asamali</h2></div>
+
+  <div class="card" style="margin-bottom:28px">
+    <h3>Neden Bu Kadar Karmasik?</h3>
+    <p style="margin-bottom:12px">Basit bir "logoyu gorsele yapistir" yaklasimi su sorunlari yaratiyor:</p>
+    <div class="grid4">
+      <div style="padding:14px;background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.15);border-radius:12px">
+        <div style="font-size:.82rem;font-weight:700;color:var(--red);margin-bottom:4px">Sticker Efekti</div>
+        <div style="font-size:.75rem;color:var(--muted)">Logo sonradan yapistirilmis gibi siritiyor</div>
+      </div>
+      <div style="padding:14px;background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.15);border-radius:12px">
+        <div style="font-size:.82rem;font-weight:700;color:var(--red);margin-bottom:4px">Isik Uyumsuzlugu</div>
+        <div style="font-size:.75rem;color:var(--muted)">Logo duz ama kumasin uzerinde golge var</div>
+      </div>
+      <div style="padding:14px;background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.15);border-radius:12px">
+        <div style="font-size:.82rem;font-weight:700;color:var(--red);margin-bottom:4px">Perspektif Hatasi</div>
+        <div style="font-size:.75rem;color:var(--muted)">Kisi yana donukken logo duz duruyor</div>
+      </div>
+      <div style="padding:14px;background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.15);border-radius:12px">
+        <div style="font-size:.82rem;font-weight:700;color:var(--red);margin-bottom:4px">Doku Eksikligi</div>
+        <div style="font-size:.75rem;color:var(--muted)">Gercek nakista iplik dokusu var, dijitalde yok</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4 Aşama -->
+  <div class="pipeline">
+    <div class="pstep" style="border-left:3px solid var(--purple)">
+      <div class="head">
+        <h4><span class="badge badge-purple">ASAMA 1</span> &nbsp; Temiz Sahne Uretimi</h4>
+        <div class="time">~3 sn &bull; Flux Dev</div>
+      </div>
+      <p>Prompt'taki tum "logo", "patch", "badge" kelimeleri <strong style="color:var(--red)">silinir</strong>. Flux'a eklenen talimat:</p>
+      <div class="codeblock">"Ensure the clothing is completely clean with NO added logos, NO text, NO patches. A clean natural uniform fabric."</div>
+      <p><strong style="color:var(--green)">Sonuc:</strong> Uzerinde hicbir isaret olmayan tertemiz uniforms</p>
+    </div>
+    <div class="parrow">&#9660;</div>
+
+    <div class="pstep" style="border-left:3px solid var(--amber)">
+      <div class="head">
+        <h4><span class="badge badge-amber">ASAMA 2</span> &nbsp; Gogus Alani Tespiti</h4>
+        <div class="time">~5-6 sn &bull; Gemini Vision</div>
+      </div>
+      <p>Gemini'ye: <em>"Kisi basina TAM 1 gogus/cep alani bul. Yaka, dugme, isimlik SECME."</em></p>
+      <div class="codeblock">{ patches: [{ person:1, x_min:300, y_min:200, x_max:550, y_max:450, perspective: "frontal" }] }</div>
+      <p>Koordinat sistemi: 0-1000 normalize. (0,0) = sol ust, 1000 = tam genislik/yukseklik.</p>
+    </div>
+    <div class="parrow">&#9660;</div>
+
+    <div class="pstep" style="border-left:3px solid var(--blue)">
+      <div class="head">
+        <h4><span class="badge badge-blue">ASAMA 3</span> &nbsp; Kaba Logo Yerlestirme</h4>
+        <div class="time">&lt;0.1 sn &bull; Sharp</div>
+      </div>
+      <p><strong style="color:var(--text)">1.</strong> Logo &rarr; resize (patch alaninin %95'i, fit: contain)</p>
+      <p><strong style="color:var(--text)">2.</strong> Logo &rarr; <code>blur(0.3)</code> &mdash; jilet keskinligini yumusat</p>
+      <p><strong style="color:var(--text)">3.</strong> Logo &rarr; <code>affine transform</code> (perspektife gore hafif egim)</p>
+      <p><strong style="color:var(--text)">4.</strong> Logo &rarr; <code>over blend</code> ile gorsele yerlestir</p>
+      <p style="margin-top:10px"><strong style="color:var(--amber)">Ek:</strong> Inpainting icin siyah/beyaz <strong>MASK</strong> uretilir (logo alanlari beyaz, geri kalan siyah, 10px genisletme)</p>
+    </div>
+    <div class="parrow">&#9660;</div>
+
+    <div class="pstep" style="border-left:3px solid var(--green);box-shadow:0 0 30px rgba(34,197,94,0.06)">
+      <div class="head">
+        <h4><span class="badge badge-green">ASAMA 4</span> &nbsp; Harmonizasyon / Firinlama</h4>
+        <div class="time">~7 sn &bull; Flux Inpainting</div>
+      </div>
+      <p>Model: <code>fal-ai/flux-general/inpainting</code></p>
+      <p style="margin:8px 0"><strong style="color:var(--text)">Girdi:</strong> Logolu gorsel + siyah/beyaz mask + harmonizasyon promptu</p>
+      <div class="codeblock">"The company logo is naturally embroidered onto the uniform fabric, seamlessly matching lighting, shadows, and natural fabric wrinkles perfectly."<br>strength: 0.35</div>
+      <p style="margin-top:10px"><strong style="color:var(--green)">Ne yapar:</strong> SADECE mask'taki beyaz bolgeleri (logo alanlarini) yeniden cizer. Yuzler, arka plan, vucut pozisyonu <strong style="color:var(--text)">DEGISMEZ</strong>.</p>
+    </div>
+  </div>
+
+  <!-- Başarısız Yaklaşımlar -->
+  <div class="card" style="margin-top:32px">
+    <h3>Daha Once Denenen ve Basarisiz Olan Yaklasimlar</h3>
+    <div class="timeline" style="margin-top:20px">
+      <div class="tl-item fail">
+        <h4>Yaklasim 1: Flux'a "Bos Yama Ciz" Demek</h4>
+        <p>Flux kiyafete kocaman <strong style="color:var(--red)">gri dikdortgen</strong> cizdi. Cirkin ve yapay.</p>
+        <p><strong style="color:var(--amber)">Ders:</strong> "Logo olmasin" demek, "bos kutu ciz" demekten cok daha iyi sonuc verir.</p>
+      </div>
+      <div class="tl-item fail">
+        <h4>Yaklasim 2: Multiply Blend Modu</h4>
+        <p>Koyu kumaslarda (lacivert, siyah) logonun tum acik renkleri <strong style="color:var(--red)">yok oldu</strong>. Lacivert x Beyaz = Lacivert.</p>
+        <p><strong style="color:var(--amber)">Ders:</strong> Multiply sadece acik yüzeylerde calisir. Koyu kumaslar icin over blend + inpainting gerekli.</p>
+      </div>
+      <div class="tl-item fail">
+        <h4>Yaklasim 3: Flux Image-to-Image</h4>
+        <p>Yuzler degisti, arka plan degisti, kompozisyon bozuldu — ama logo <strong style="color:var(--red)">hala yapisik</strong>. Flux Img2Img mask destelemedigini icin TUM pikselleri yeniden uretiyor.</p>
+        <p><strong style="color:var(--amber)">Ders:</strong> Global image-to-image, lokal harmonizasyon icin uygun degil.</p>
+      </div>
+      <div class="tl-item current">
+        <h4>Final Cozum: Mask-Based Inpainting</h4>
+        <p>Logo koordinatlarindan otomatik siyah/beyaz mask uretip, <strong style="color:var(--green)">sadece logo bolgesini</strong> Flux Inpainting ile yeniden cizdiriyoruz. Yuzler, arka plan dokunulmadan kaliyor.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ 5. VİDEO PİPELİNE ═══════════════════════ -->
+<section id="video-pipeline">
+  <div class="stitle"><div class="num">5</div><h2>Video Olusturma Pipeline'i — 5 Adimli Orkestrasyon</h2></div>
+
+  <div class="pipeline">
+    <div class="pstep" style="border-left:3px solid var(--purple)">
+      <div class="head">
+        <h4>Adim 1: Senaryo Uretimi</h4>
+        <div class="time">~3 sn &bull; $0.01</div>
+      </div>
+      <p>OpenRouter (Gemini 2.5 Flash) &rarr; Turkce metin + 4 Ingilizce prompt</p>
+    </div>
+    <div class="parrow">&#9660;</div>
+
+    <div class="pstep" style="border-left:3px solid var(--blue)">
+      <div class="head">
+        <h4>Adim 2: Gorsel Uretimi (4 Asamali Pipeline)</h4>
+        <div class="time">~15 sn &bull; $0.20</div>
+      </div>
+      <p>Flux Dev + Gemini Vision + Sharp + Flux Inpainting &rarr; 4 adet fotogercekci logolu gorsel (paralel)</p>
+    </div>
+    <div class="parrow">&#9660;</div>
+
+    <div class="pstep" style="border-left:3px solid var(--cyan)">
+      <div class="head">
+        <h4>Adim 3 &amp; 4: Video + Ses (PARALEL)</h4>
+        <div class="time">~6 dk &bull; $0.45</div>
+      </div>
+      <div class="grid2" style="margin-top:10px">
+        <div style="padding:14px;background:var(--bg3);border-radius:10px">
+          <div style="font-size:.8rem;font-weight:700;color:var(--cyan);margin-bottom:4px">Video Uretimi — Kling v1.6</div>
+          <div style="font-size:.78rem;color:var(--muted)">4 sahne paralel &bull; 5 sn/klip &bull; 9:16 MP4</div>
+          <div style="font-size:.78rem;color:var(--muted)">~6 dk (pipeline'in darboğazi)</div>
+        </div>
+        <div style="padding:14px;background:var(--bg3);border-radius:10px">
+          <div style="font-size:.8rem;font-weight:700;color:var(--green);margin-bottom:4px">Seslendirme — ElevenLabs</div>
+          <div style="font-size:.78rem;color:var(--muted)">Turkce Multilingual v2 &bull; ~15 sn MP3</div>
+          <div style="font-size:.78rem;color:var(--muted)">~5 saniyede hazir</div>
+        </div>
+      </div>
+      <p style="margin-top:10px;font-size:.78rem"><code>Promise.allSettled()</code> ile paralel calisir — video bitmesini beklerken ses coktan hazir.</p>
+    </div>
+    <div class="parrow">&#9660;</div>
+
+    <div class="pstep" style="border-left:3px solid var(--green)">
+      <div class="head">
+        <h4>Adim 5: Birlestirme</h4>
+        <div class="time">~10 sn &bull; $0.00</div>
+      </div>
+      <p>FFmpeg (concat demuxer) &rarr; 1080x1920, H.264, AAC 192kbps &rarr; <strong style="color:var(--green)">FINAL VIDEO (MP4)</strong></p>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:24px">
+    <h3>Paralel Isleme Stratejisi</h3>
+    <p>Pipeline'daki en buyuk darbogaz <strong style="color:var(--red)">video uretimi</strong> (~6 dk/klip). Bunu minimize etmek icin:</p>
+    <ul style="margin-top:10px">
+      <li><strong style="color:var(--text)">4 sahne gorseli paralel</strong> uretilir (<code>Promise.allSettled</code>)</li>
+      <li><strong style="color:var(--text)">4 video klip paralel</strong> uretilir</li>
+      <li><strong style="color:var(--text)">Video + TTS paralel</strong> calisir</li>
+      <li><strong style="color:var(--text)">Kismi basari tolere edilir</strong> — 4 sahneden 3'u basariliysa pipeline devam eder</li>
+    </ul>
+    <p style="margin-top:10px">Bu strateji sayesinde 4 klip x 6 dk = 24 dk yerine <strong style="color:var(--green)">~6-7 dakika</strong> yeterli oluyor.</p>
+  </div>
+</section>
+
+<!-- ═══════════════════════ 6. TEST LAB ═══════════════════════ -->
+<section id="testlab">
+  <div class="stitle"><div class="num">6</div><h2>Test Lab — Logo Pipeline Test Arayuzu</h2></div>
+  <div class="card">
+    <p style="margin-bottom:16px">Logo yerlestirme kalitesini gercek zamanli test etmek ve optimizasyonlari gozle dogrulamak icin ozel bir test sayfasi gelistirdik.</p>
+    <div class="grid3">
+      <div style="padding:18px;background:var(--bg3);border-radius:12px;text-align:center;border-top:3px solid var(--purple)">
+        <div style="font-size:.75rem;color:var(--purple);font-weight:700;margin-bottom:6px">ASAMA 1</div>
+        <div style="font-size:.9rem;font-weight:700;margin-bottom:4px">Temiz Sahne</div>
+        <div style="font-size:.75rem;color:var(--muted)">Flux Dev — logosuz baz gorsel</div>
+      </div>
+      <div style="padding:18px;background:var(--bg3);border-radius:12px;text-align:center;border-top:3px solid var(--blue)">
+        <div style="font-size:.75rem;color:var(--blue);font-weight:700;margin-bottom:6px">ASAMA 3</div>
+        <div style="font-size:.9rem;font-weight:700;margin-bottom:4px">Kaba Yerlestirme</div>
+        <div style="font-size:.75rem;color:var(--muted)">Sharp — logo yapistirilmis hali</div>
+      </div>
+      <div style="padding:18px;background:var(--bg3);border-radius:12px;text-align:center;border-top:3px solid var(--green)">
+        <div style="font-size:.75rem;color:var(--green);font-weight:700;margin-bottom:6px">ASAMA 4</div>
+        <div style="font-size:.9rem;font-weight:700;margin-bottom:4px">Kusursuz Final</div>
+        <div style="font-size:.75rem;color:var(--muted)">Flux Inpainting — harmonize edilmis</div>
+      </div>
+    </div>
+    <p style="margin-top:16px;font-size:.85rem">Bu 3'lu karsilastirma sayesinde "yapistirma &rarr; harmanlama" farkini gozle gormek mumkun. Her asamanin suresi, toplam sure, tespit edilen alan sayisi raporlanir.</p>
+  </div>
+</section>
+
+<!-- ═══════════════════════ 7. FRONTEND ═══════════════════════ -->
+<section id="frontend">
+  <div class="stitle"><div class="num">7</div><h2>Frontend Mimarisi</h2></div>
+  <div class="grid2">
+    <div class="card">
+      <h3>Landing Sayfasi ( / )</h3>
+      <table class="tbl">
+        <tr><th>Bolum</th><th>Bilesen</th><th>Icerik</th></tr>
+        <tr><td class="em">Hero</td><td>Hero.jsx</td><td>"AI ile Profesyonel Reklam Videolari" + CTA</td></tr>
+        <tr><td class="em">Nasil Calisir</td><td>HowItWorks.jsx</td><td>3 adim: Yukle &rarr; AI uretir &rarr; Indir</td></tr>
+        <tr><td class="em">Fiyatlandirma</td><td>Pricing.jsx</td><td>4 plan: 49 TL &rarr; 1499 TL/ay</td></tr>
+        <tr><td class="em">Alt Bilgi</td><td>Footer.jsx</td><td>Baglantilar, sosyal medya</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <h3>Dashboard ( /dashboard )</h3>
+      <table class="tbl">
+        <tr><th>Sayfa</th><th>Icerik</th></tr>
+        <tr><td class="em">Ana Sayfa</td><td>Kredi bakiyesi, son videolar, istatistikler</td></tr>
+        <tr><td class="em">Video Olustur</td><td>Form &rarr; 5 adimli ilerleme &rarr; Final video</td></tr>
+        <tr><td class="em">Videolarim</td><td>Tum videolarin listesi, durum, indirme</td></tr>
+        <tr><td class="em">Test Lab</td><td>Logo pipeline 3 asama karsilastirma</td></tr>
+      </table>
+    </div>
+  </div>
+  <div class="card">
+    <h3>UI/UX Tasarim Kararlari</h3>
+    <div class="grid3" style="margin-top:12px">
+      <div style="padding:14px;background:var(--bg3);border-radius:10px"><strong style="color:var(--text);font-size:.85rem">Dark Tema</strong><br><span style="font-size:.78rem;color:var(--muted)">Profesyonel ve modern gorunum</span></div>
+      <div style="padding:14px;background:var(--bg3);border-radius:10px"><strong style="color:var(--text);font-size:.85rem">Glass-morphism</strong><br><span style="font-size:.78rem;color:var(--muted)">Yari saydam kartlar, derinlik hissi</span></div>
+      <div style="padding:14px;background:var(--bg3);border-radius:10px"><strong style="color:var(--text);font-size:.85rem">Mor Accent</strong><br><span style="font-size:.78rem;color:var(--muted)">Marka rengi, CTA butonlar</span></div>
+      <div style="padding:14px;background:var(--bg3);border-radius:10px"><strong style="color:var(--text);font-size:.85rem">Responsive</strong><br><span style="font-size:.78rem;color:var(--muted)">Mobile-first, tum ekranlar</span></div>
+      <div style="padding:14px;background:var(--bg3);border-radius:10px"><strong style="color:var(--text);font-size:.85rem">Gercek Zamanli</strong><br><span style="font-size:.78rem;color:var(--muted)">Ilerleme cubugu, adim adim durum</span></div>
+      <div style="padding:14px;background:var(--bg3);border-radius:10px"><strong style="color:var(--text);font-size:.85rem">3s Polling</strong><br><span style="font-size:.78rem;color:var(--muted)">/api/status her 3 saniyede sorgu</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ 8. MALİYET ═══════════════════════ -->
+<section id="maliyet">
+  <div class="stitle"><div class="num">8</div><h2>Maliyet Analizi</h2></div>
+  <div class="card">
+    <h3>Video Basina Uretim Maliyeti</h3>
+    <table class="tbl">
+      <tr><th>Adim</th><th>API</th><th>Birim</th><th>Adet</th><th>Toplam</th></tr>
+      <tr><td class="em">Senaryo</td><td>OpenRouter</td><td>$0.01</td><td>1</td><td>$0.01</td></tr>
+      <tr><td class="em">Gorsel</td><td>Fal.ai (Flux Dev)</td><td>$0.04</td><td>4</td><td>$0.16</td></tr>
+      <tr><td class="em">Logo Tespit</td><td>Google Gemini</td><td>$0.01</td><td>4</td><td>$0.04</td></tr>
+      <tr><td class="em">Harmonizasyon</td><td>Fal.ai (Inpainting)</td><td>$0.04</td><td>4</td><td>$0.16</td></tr>
+      <tr><td class="em">Video</td><td>Fal.ai (Kling)</td><td>$0.10</td><td>4</td><td>$0.40</td></tr>
+      <tr><td class="em">Seslendirme</td><td>ElevenLabs</td><td>$0.05</td><td>1</td><td>$0.05</td></tr>
+      <tr><td class="em">Birlestirme</td><td>FFmpeg (yerel)</td><td>$0.00</td><td>1</td><td>$0.00</td></tr>
+      <tr><td class="em" style="color:var(--green);font-size:.95rem"><strong>TOPLAM</strong></td><td></td><td></td><td></td><td style="color:var(--green);font-weight:800;font-size:.95rem">~$0.82</td></tr>
+    </table>
+
+    <h4>Maliyet Dagilimi (Gorsel)</h4>
+    <div class="cost-bar">
+      <div style="flex:49;background:#7c3aed" title="Video $0.40">Video 49%</div>
+      <div style="flex:19.5;background:#3b82f6" title="Gorsel $0.16">Gorsel 20%</div>
+      <div style="flex:19.5;background:#f59e0b" title="Harmonize $0.16">Harmonize 20%</div>
+      <div style="flex:6;background:#22c55e" title="TTS $0.05">TTS</div>
+      <div style="flex:6;background:#06b6d4" title="Diger $0.05">Diger</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Fiyatlandirma ve Kar Marji</h3>
+    <table class="tbl">
+      <tr><th>Plan</th><th>Fiyat</th><th>Video/Ay</th><th>Birim Fiyat</th><th>Brut Marj</th></tr>
+      <tr><td class="em">Tek Video</td><td>49 TL (~$1.50)</td><td>1</td><td>49 TL</td><td><span class="badge badge-amber">%45</span></td></tr>
+      <tr><td class="em">Baslangic</td><td>299 TL/ay</td><td>10</td><td>29.90 TL</td><td><span class="badge badge-green">%91</span></td></tr>
+      <tr><td class="em">Profesyonel</td><td>699 TL/ay</td><td>30</td><td>23.30 TL</td><td><span class="badge badge-green">%88</span></td></tr>
+      <tr><td class="em">Ajans</td><td>1499 TL/ay</td><td>100</td><td>14.99 TL</td><td><span class="badge badge-green">%83</span></td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- ═══════════════════════ 9. GÜVENLİK ═══════════════════════ -->
+<section id="guvenlik">
+  <div class="stitle"><div class="num">9</div><h2>Guvenlik ve Hata Yonetimi</h2></div>
+  <div class="grid2">
+    <div class="card">
+      <h3>API Guvenligi</h3>
+      <ul>
+        <li>Tum API anahtarlari <code>.env.local</code> dosyasinda</li>
+        <li>Path traversal korumasi (dosya sunucusu)</li>
+        <li>Dosya boyutu limitleri (logo max 20MB)</li>
+        <li>Client'a hicbir API anahtari acik degil</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Hata Toleransi (Fallback Stratejileri)</h3>
+      <table class="tbl">
+        <tr><th>Senaryo</th><th>Strateji</th></tr>
+        <tr><td class="em">LLM cokerse</td><td>Gemini &rarr; GPT-4o-mini fallback</td></tr>
+        <tr><td class="em">1 sahne basarisiz</td><td>Diger 3 sahne ile devam</td></tr>
+        <tr><td class="em">Logo tespit edilemez</td><td>Base gorseli logosuz kullan</td></tr>
+        <tr><td class="em">Harmonizasyon basarisiz</td><td>Kaba composite'i final olarak kullan</td></tr>
+        <tr><td class="em">Video uretimi cokerse</td><td>Basarili kliplerle kismi video olustur</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ 10. VERSİYON ═══════════════════════ -->
+<section id="versiyon">
+  <div class="stitle"><div class="num">10</div><h2>Gelistirme Yolculugu — Versiyon Tarihcesi</h2></div>
+  <div class="card">
+    <div class="timeline">
+      <div class="tl-item">
+        <h4>v1.0 — Ilk Prototip</h4>
+        <p>Basit text-to-image + video pipeline. Logo yerlestirme yok.</p>
+      </div>
+      <div class="tl-item fail">
+        <h4>v2.0 — Logo Composite Pipeline (3 Asama)</h4>
+        <p>Flux Dev + Gemini Vision + Sharp (multiply blend)</p>
+        <p><strong style="color:var(--red)">Problem:</strong> Gri yama sorunu, karanlik kumaslarda logo kaybolmasi</p>
+      </div>
+      <div class="tl-item fail">
+        <h4>v2.5 — Multiply &rarr; Over Gecisi</h4>
+        <p>multiply blend kaldirildi, over blend + blur(0.4) eklendi</p>
+        <p><strong style="color:var(--red)">Problem:</strong> Logo hala "yapistirilmis" gorunuyor</p>
+      </div>
+      <div class="tl-item fail">
+        <h4>v3.0 — Image-to-Image Harmonizasyon Denemesi</h4>
+        <p>Flux Dev Img2Img (strength: 0.20) eklendi</p>
+        <p><strong style="color:var(--red)">Problem:</strong> Tum gorseli yeniden cizdi — yuzler ve arka plan degisti</p>
+      </div>
+      <div class="tl-item current">
+        <h4>v3.5 — Mask-Based Inpainting (Guncel)</h4>
+        <p><code>fal-ai/flux-general/inpainting</code> modeline gecis. Otomatik siyah/beyaz mask uretimi. Sadece logo bolgesi yeniden ciziliyor, geri kalan korunuyor. Logo boyutu %95.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ 11. ROADMAP ═══════════════════════ -->
+<section id="roadmap">
+  <div class="stitle"><div class="num">11</div><h2>Gelecekteki Gelistirmeler (Roadmap)</h2></div>
+  <div class="grid2">
+    <div class="card" style="border-top:3px solid var(--blue)">
+      <h3>Phase 2 <span style="font-size:.78rem;color:var(--muted);font-weight:400">(Hafta 3-6)</span></h3>
+      <ul>
+        <li><strong style="color:var(--text)">Supabase:</strong> Kullanici auth, PostgreSQL, dosya depolama</li>
+        <li><strong style="color:var(--text)">BullMQ:</strong> Paralel is yonetimi kuyrugu</li>
+        <li><strong style="color:var(--text)">E-posta:</strong> Video hazir oldugunda otomatik bildirim</li>
+        <li><strong style="color:var(--text)">Retry:</strong> Basarisiz isler icin otomatik yeniden deneme</li>
+      </ul>
+    </div>
+    <div class="card" style="border-top:3px solid var(--purple)">
+      <h3>Phase 3 <span style="font-size:.78rem;color:var(--muted);font-weight:400">(Hafta 6-12)</span></h3>
+      <ul>
+        <li><strong style="color:var(--text)">Cok Dilli:</strong> Ingilizce, Arapca seslendirme ve senaryo</li>
+        <li><strong style="color:var(--text)">50+ Sablon:</strong> Hazir senaryo kaliplari</li>
+        <li><strong style="color:var(--text)">A/B Test:</strong> Ayni firma icin farkli konseptler</li>
+        <li><strong style="color:var(--text)">Odeme:</strong> Stripe / Iyzico entegrasyonu</li>
+        <li><strong style="color:var(--text)">API Erisimi:</strong> Ajanslar icin programatik erisim</li>
+        <li><strong style="color:var(--text)">Analitik:</strong> Video izlenme, indirme istatistikleri</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ 12. TEKNIK TABLO ═══════════════════════ -->
+<section>
+  <div class="stitle"><div class="num">12</div><h2>Teknik Ozellikler &amp; API Referansi</h2></div>
+  <div class="grid2">
+    <div class="card">
+      <h3>Teknik Ozellikler</h3>
+      <table class="tbl">
+        <tr><td class="em">Framework</td><td>Next.js 16.2.2 (App Router, ESM)</td></tr>
+        <tr><td class="em">Runtime</td><td>Server-side + Client-side (React 19)</td></tr>
+        <tr><td class="em">Video Codec</td><td>H.264 (libx264), CRF 23</td></tr>
+        <tr><td class="em">Audio Codec</td><td>AAC, 192 kbps</td></tr>
+        <tr><td class="em">Cozunurluk</td><td>1080x1920 (9:16 portrait)</td></tr>
+        <tr><td class="em">Sahne</td><td>4 (paralel uretim)</td></tr>
+        <tr><td class="em">Klip Suresi</td><td>5 sn x 4 = 20 saniye</td></tr>
+        <tr><td class="em">Logo Formatlari</td><td>PNG, JPG, WebP</td></tr>
+        <tr><td class="em">TTS Dili</td><td>Turkce (genisletilebilir)</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <h3>API Endpoint Referansi</h3>
+      <table class="tbl">
+        <tr><th>Endpoint</th><th>Method</th><th>Aciklama</th></tr>
+        <tr><td class="em">/api/generate</td><td><span class="badge badge-green">POST</span></td><td>Video uretim isi baslat</td></tr>
+        <tr><td class="em">/api/generate</td><td><span class="badge badge-blue">GET</span></td><td>Tum isleri listele</td></tr>
+        <tr><td class="em">/api/status/[jobId]</td><td><span class="badge badge-blue">GET</span></td><td>Is durumunu sorgula</td></tr>
+        <tr><td class="em">/api/test-model</td><td><span class="badge badge-green">POST</span></td><td>Test Lab pipeline calistir</td></tr>
+        <tr><td class="em">/api/composite-logo</td><td><span class="badge badge-green">POST</span></td><td>Tek seferlik composite</td></tr>
+        <tr><td class="em">/api/files/[...]</td><td><span class="badge badge-blue">GET</span></td><td>Dosya sun (korunmali)</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ 13. SONUÇ ═══════════════════════ -->
+<section id="sonuc">
+  <div class="stitle"><div class="num">13</div><h2>Sonuc</h2></div>
+  <div class="card" style="border:1px solid rgba(168,85,247,0.25);background:linear-gradient(135deg,rgba(168,85,247,0.06),rgba(109,40,217,0.03))">
+    <p style="font-size:1rem;color:var(--text);margin-bottom:20px"><strong>VideoAI</strong>, yapay zekanin birden fazla alanini (dil modelleri, goruntu uretimi, gorus modelleri, goruntu isleme, video uretimi, ses sentezi) tek bir pipeline'da orkestre ederek, KOBİ'lerin dakikalar icinde profesyonel reklam videolari uretmesini saglayan yenilikci bir SaaS platformudur.</p>
+    <div class="grid3" style="gap:14px">
+      <div style="padding:16px;background:var(--bg2);border-radius:12px;border-left:3px solid var(--purple)">
+        <div style="font-size:.82rem;font-weight:700;color:var(--purple);margin-bottom:4px">4 Asamali Logo Pipeline</div>
+        <div style="font-size:.78rem;color:var(--muted)">Endustri standardi inpainting harmonizasyonu ile dogal logo yerlestirme</div>
+      </div>
+      <div style="padding:16px;background:var(--bg2);border-radius:12px;border-left:3px solid var(--green)">
+        <div style="font-size:.82rem;font-weight:700;color:var(--green);margin-bottom:4px">Turkce Odakli</div>
+        <div style="font-size:.78rem;color:var(--muted)">Senaryo, seslendirme ve UI tamamen Turkce</div>
+      </div>
+      <div style="padding:16px;background:var(--bg2);border-radius:12px;border-left:3px solid var(--blue)">
+        <div style="font-size:.82rem;font-weight:700;color:var(--blue);margin-bottom:4px">Tam Otomasyon</div>
+        <div style="font-size:.78rem;color:var(--muted)">Kullanici sadece logo yukler, gerisini AI halleder</div>
+      </div>
+      <div style="padding:16px;background:var(--bg2);border-radius:12px;border-left:3px solid var(--amber)">
+        <div style="font-size:.82rem;font-weight:700;color:var(--amber);margin-bottom:4px">Maliyet Verimliligi</div>
+        <div style="font-size:.78rem;color:var(--muted)">Video basina ~$0.82 ile %83-91 brut marj</div>
+      </div>
+      <div style="padding:16px;background:var(--bg2);border-radius:12px;border-left:3px solid var(--cyan)">
+        <div style="font-size:.82rem;font-weight:700;color:var(--cyan);margin-bottom:4px">Dayanikli Mimari</div>
+        <div style="font-size:.78rem;color:var(--muted)">Paralel isleme, fallback modeller, kismi basari toleransi</div>
+      </div>
+      <div style="padding:16px;background:var(--bg2);border-radius:12px;border-left:3px solid var(--red)">
+        <div style="font-size:.82rem;font-weight:700;color:var(--red);margin-bottom:4px">6 AI API Entegrasyonu</div>
+        <div style="font-size:.78rem;color:var(--muted)">OpenRouter, Fal.ai, Gemini, ElevenLabs, Sharp, FFmpeg</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  VideoAI Proje Sunumu &bull; Nisan 2026
+</footer>
+
+</body>
+</html>

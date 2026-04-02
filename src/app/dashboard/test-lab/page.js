@@ -56,11 +56,11 @@ export default function TestLabPage() {
 
   return (
     <div className="space-y-6">
-      {/* Başlık */}
+      {/* Baslik */}
       <div>
         <h1 className="text-2xl font-bold mb-1">Logo Pipeline Test</h1>
         <p className="text-[var(--text-secondary)]">
-          2 Aşamalı: Flux Dev (sahne) → Kontext Max Multi (logo yerleştirme)
+          4 Asamali: Flux Dev (sahne) → Gemini (tespit) → Sharp (yerlestirme) → Flux Img2Img (harmonize)
         </p>
       </div>
 
@@ -93,12 +93,12 @@ export default function TestLabPage() {
                   onClick={(e) => { e.stopPropagation(); clearLogo(); }}
                   className="text-xs text-red-400 hover:text-red-300"
                 >
-                  Kaldır
+                  Kaldir
                 </button>
               </div>
             ) : (
               <div>
-                <p className="text-sm text-[var(--text-secondary)]">Logo yükle</p>
+                <p className="text-sm text-[var(--text-secondary)]">Logo yukle</p>
                 <p className="text-xs text-[var(--text-muted)] mt-1">PNG, JPG, WebP</p>
               </div>
             )}
@@ -106,10 +106,16 @@ export default function TestLabPage() {
           {/* Pipeline bilgisi */}
           <div className="mt-3 p-3 rounded-xl bg-white/[0.03] border border-white/5">
             <p className="text-xs text-[var(--text-muted)]">
-              <span className="text-purple-400">Aşama 1:</span> Flux Dev ile temiz sahne
+              <span className="text-purple-400">Asama 1:</span> Flux Dev ile temiz sahne
             </p>
             <p className="text-xs text-[var(--text-muted)] mt-1">
-              <span className="text-purple-400">Aşama 2:</span> Kontext Max Multi ile logo yerleştirme
+              <span className="text-purple-400">Asama 2:</span> Gemini ile gogus alani tespiti
+            </p>
+            <p className="text-xs text-[var(--text-muted)] mt-1">
+              <span className="text-purple-400">Asama 3:</span> Sharp ile kaba logo yerlestirme
+            </p>
+            <p className="text-xs text-[var(--text-muted)] mt-1">
+              <span className="text-amber-400">Asama 4:</span> Flux Img2Img ile harmonizasyon
             </p>
           </div>
         </div>
@@ -122,14 +128,14 @@ export default function TestLabPage() {
               onClick={() => setPrompt(DEFAULT_PROMPT)}
               className="text-xs text-purple-400 hover:text-purple-300"
             >
-              Varsayılana Dön
+              Varsayilana Don
             </button>
           </div>
           <textarea
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             rows={6}
-            placeholder="Sahne açıklamasını girin..."
+            placeholder="Sahne aciklamasini girin..."
             className="w-full px-4 py-3 rounded-xl bg-white/[0.04] border border-white/10 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-purple-500/50 resize-none"
           />
         </div>
@@ -146,7 +152,7 @@ export default function TestLabPage() {
         }`}
       >
         {isRunning ? (
-          <><Spinner /> Pipeline Çalışıyor...</>
+          <><Spinner /> Pipeline Calisiyor (4 Asama)...</>
         ) : (
           "Test Et"
         )}
@@ -159,43 +165,63 @@ export default function TestLabPage() {
         </div>
       )}
 
-      {/* Sonuç — Sahne + Final yan yana */}
+      {/* Sonuc — 3 Gorsel Karti */}
       {result && (
         <div className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Aşama 1: Temiz Sahne */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Asama 1: Temiz Sahne */}
             <ResultCard
-              title="Aşama 1: Temiz Sahne"
+              title="Asama 1: Temiz Sahne"
               subtitle="Flux Dev"
               duration={result.steps.scene.duration}
               imageUrl={result.sceneUrl}
+              borderColor="border-purple-500/20"
             />
 
-            {/* Aşama 2: Logo Yerleştirilmiş */}
+            {/* Asama 3: Kaba Yerlestirme */}
             <ResultCard
-              title="Aşama 2: Logo Yerleştirilmiş"
-              subtitle="Kontext Max Multi"
-              duration={result.steps.logo.duration}
+              title="Asama 3: Kaba Yerlestirme"
+              subtitle="Sharp Composite"
+              duration={result.steps.composite.duration}
+              imageUrl={result.compositeUrl}
+              borderColor="border-blue-500/20"
+            />
+
+            {/* Asama 4: Kusursuz Final */}
+            <ResultCard
+              title="Asama 4: Kusursuz Final"
+              subtitle="Flux Img2Img Harmonize"
+              duration={result.steps.harmonization.duration}
               imageUrl={result.imageUrl}
+              borderColor="border-amber-500/20"
+              highlight
             />
           </div>
 
-          {/* Toplam süre + İndir */}
-          <div className="flex items-center gap-4 p-4 rounded-xl bg-white/[0.02] border border-white/5">
+          {/* Asama 2 bilgisi + Toplam sure */}
+          <div className="flex flex-wrap items-center gap-4 p-4 rounded-xl bg-white/[0.02] border border-white/5">
             <span className="text-sm text-green-400 font-medium">
               Toplam: {result.duration}s
             </span>
             <span className="text-xs text-[var(--text-muted)]">
-              (Sahne: {result.steps.scene.duration}s + Logo: {result.steps.logo.duration}s)
+              Sahne: {result.steps.scene.duration}s
+              + Tespit: {result.steps.detection.duration}s
+              + Composite: {result.steps.composite.duration}s
+              + Harmonize: {result.steps.harmonization.duration}s
             </span>
+            {result.patchCount > 0 && (
+              <span className="text-xs px-2 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                {result.patchCount} alan tespit edildi
+              </span>
+            )}
             <a
               href={result.imageUrl}
-              download="logo_pipeline_result.png"
+              download="logo_pipeline_harmonized.png"
               target="_blank"
               rel="noopener noreferrer"
               className="ml-auto text-sm text-purple-400 hover:text-purple-300"
             >
-              Final Görseli İndir
+              Final Gorseli Indir
             </a>
           </div>
         </div>
@@ -204,22 +230,22 @@ export default function TestLabPage() {
   );
 }
 
-function ResultCard({ title, subtitle, duration, imageUrl }) {
+function ResultCard({ title, subtitle, duration, imageUrl, borderColor, highlight }) {
   const [fullscreen, setFullscreen] = useState(false);
 
   return (
     <>
-      <div className="glass-card rounded-2xl overflow-hidden">
-        <div className="p-4 border-b border-white/5">
+      <div className={`glass-card rounded-2xl overflow-hidden ${highlight ? "ring-1 ring-amber-500/30" : ""}`}>
+        <div className={`p-3 border-b ${borderColor || "border-white/5"}`}>
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="font-semibold text-sm">{title}</h3>
-              <p className="text-xs text-[var(--text-muted)]">{subtitle}</p>
+              <h3 className="font-semibold text-xs">{title}</h3>
+              <p className="text-[10px] text-[var(--text-muted)]">{subtitle}</p>
             </div>
             <span className="text-xs text-green-400 font-medium">{duration}s</span>
           </div>
         </div>
-        <div className="p-4">
+        <div className="p-3">
           <div
             onClick={() => setFullscreen(true)}
             className="rounded-xl overflow-hidden border border-white/10 hover:border-purple-500/30 cursor-pointer transition-all"
@@ -246,7 +272,7 @@ function ResultCard({ title, subtitle, duration, imageUrl }) {
                 onClick={(e) => e.stopPropagation()}
                 className="px-3 py-1.5 rounded-lg bg-black/60 backdrop-blur text-xs text-white hover:bg-black/80"
               >
-                İndir
+                Indir
               </a>
               <button className="px-3 py-1.5 rounded-lg bg-black/60 backdrop-blur text-xs text-white hover:bg-black/80">
                 Kapat

@@ -53,24 +53,37 @@ export default function Hero() {
           <Stat value="4K" label="Kalite" />
         </div>
 
-        {/* Video Önizleme Placeholder */}
-        <div className="animate-fade-in-up delay-400 mt-20 max-w-3xl mx-auto">
-          <div className="glass-card p-1 rounded-2xl animate-pulse-glow">
-            <div className="relative aspect-video rounded-xl overflow-hidden bg-gradient-to-br from-purple-900/30 to-blue-900/30 flex items-center justify-center">
-              {/* Play butonu */}
-              <div className="w-20 h-20 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20 cursor-pointer hover:bg-white/20 transition-all hover:scale-110">
-                <svg
-                  className="w-8 h-8 text-white ml-1"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path d="M8 5v14l11-7z" />
-                </svg>
+        {/* Demo Videolar */}
+        <div className="animate-fade-in-up delay-400 mt-20 max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="rounded-2xl overflow-hidden shadow-[0_8px_40px_rgba(168,85,247,0.15)] border border-white/10 bg-black/30">
+              <video
+                className="w-full aspect-[9/16] object-cover"
+                src="/video/demo-1.mp4"
+                controls
+                muted
+                playsInline
+                preload="metadata"
+                poster=""
+              />
+              <div className="px-4 py-3 flex items-center gap-2 text-sm text-white/60 border-t border-white/5">
+                <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+                AI Reklam Video #1
               </div>
-              {/* Alt bilgi */}
-              <div className="absolute bottom-4 left-4 flex items-center gap-2 text-sm text-white/60">
-                <span className="w-2 h-2 rounded-full bg-red-400 animate-pulse" />
-                Örnek reklam videosu
+            </div>
+            <div className="rounded-2xl overflow-hidden shadow-[0_8px_40px_rgba(59,130,246,0.15)] border border-white/10 bg-black/30">
+              <video
+                className="w-full aspect-[9/16] object-cover"
+                src="/video/demo-2.mp4"
+                controls
+                muted
+                playsInline
+                preload="metadata"
+                poster=""
+              />
+              <div className="px-4 py-3 flex items-center gap-2 text-sm text-white/60 border-t border-white/5">
+                <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+                AI Reklam Video #2
               </div>
             </div>
           </div>
